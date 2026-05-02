@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import styles from '@/styles/components/codePanel.module.css';
-import { ComponentType } from '@/types';
+import { ComponentType, ProjectFile } from '@/types';
 import {
   FileCode2,
   Copy,
@@ -14,23 +14,29 @@ import {
 interface CodePanelProps {
   code: string;
   componentList: ComponentType[];
+  files?: ProjectFile[];
   onCodeChange?: (code: string) => void;
 }
 
 export const CodePanel: React.FC<CodePanelProps> = ({
   code,
   componentList,
+  files = [],
 }) => {
   const [copied, setCopied] = useState(false);
+  const [activePath, setActivePath] = useState('');
+  const visibleFiles = files.length > 0 ? files : [{ path: 'GeneratedUI.tsx', content: code }];
+  const activeFile = visibleFiles.find((file) => file.path === activePath) || visibleFiles[0];
+  const activeCode = activeFile?.content || code;
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(code);
+      await navigator.clipboard.writeText(activeCode);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
       const textarea = document.createElement('textarea');
-      textarea.value = code;
+      textarea.value = activeCode;
       document.body.appendChild(textarea);
       textarea.select();
       document.execCommand('copy');
@@ -40,16 +46,25 @@ export const CodePanel: React.FC<CodePanelProps> = ({
     }
   };
 
-  const lineCount = code ? code.split('\n').length : 0;
+  const lineCount = activeCode ? activeCode.split('\n').length : 0;
+  const language = activeFile?.path.endsWith('.json')
+    ? 'json'
+    : activeFile?.path.endsWith('.css')
+      ? 'css'
+      : activeFile?.path.endsWith('.md')
+        ? 'markdown'
+        : activeFile?.path.endsWith('.html')
+          ? 'html'
+          : 'tsx';
 
-  if (!code) {
+  if (!activeCode) {
     return (
       <div className={styles.codePanel}>
         <div className={styles.header}>
           <div className={styles.headerLeft}>
             <FileCode2 size={15} className={styles.headerIconSvg} />
             <span className={styles.headerTitle}>Code</span>
-            <span className={styles.fileName}>GeneratedUI.tsx</span>
+            <span className={styles.fileName}>{activeFile?.path || 'GeneratedUI.tsx'}</span>
           </div>
         </div>
         <div className={styles.emptyState}>
@@ -113,8 +128,9 @@ export const CodePanel: React.FC<CodePanelProps> = ({
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           <FileCode2 size={15} className={styles.headerIconSvg} />
-          <span className={styles.headerTitle}>Code</span>
-          <span className={styles.fileName}>GeneratedUI.tsx</span>
+          <span className={styles.headerTitle}>Project Files</span>
+          <span className={styles.fileName}>{activeFile?.path || 'GeneratedUI.tsx'}</span>
+          {files.length > 0 && <span className={styles.fileName}>{files.length} files</span>}
         </div>
         <div className={styles.headerActions}>
           <button
@@ -132,10 +148,25 @@ export const CodePanel: React.FC<CodePanelProps> = ({
       </div>
 
       {/* Code Display */}
-      <div className={styles.codeContainer}>
+      <div className={styles.projectCodeArea}>
+        {files.length > 0 && (
+          <aside className={styles.fileTree}>
+            {visibleFiles.map((file) => (
+              <button
+                key={file.path}
+                className={`${styles.fileTreeItem} ${file.path === activeFile?.path ? styles.fileTreeItemActive : ''}`}
+                onClick={() => setActivePath(file.path)}
+                type="button"
+              >
+                {file.path}
+              </button>
+            ))}
+          </aside>
+        )}
+        <div className={styles.codeContainer}>
         <div className={styles.codeWrapper}>
           <SyntaxHighlighter
-            language="tsx"
+            language={language}
             style={vscDarkPlus}
             showLineNumbers
             wrapLines
@@ -145,8 +176,9 @@ export const CodePanel: React.FC<CodePanelProps> = ({
               fontSize: '0.82rem',
             }}
           >
-            {code}
+            {activeCode}
           </SyntaxHighlighter>
+        </div>
         </div>
       </div>
 

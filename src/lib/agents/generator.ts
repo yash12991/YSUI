@@ -5,7 +5,7 @@
 // ============================================
 
 import { PlannerOutput, GeneratorOutput, ComponentType } from '@/types';
-import { callGemini } from './geminiClient';
+import { callAI } from './aiProvider';
 import { getComponentDescriptions } from '../validation';
 
 // ---- ALL ALLOWED COMPONENT TYPES ----
@@ -195,7 +195,7 @@ ${getLayoutGuidance(plan.layout)}
 
 Return ONLY TSX code. No markdown, no explanation.`;
 
-  const response = await callGemini(userMessage, GENERATOR_SYSTEM_PROMPT);
+  const response = await callAI(userMessage, GENERATOR_SYSTEM_PROMPT);
 
   // Clean the response
   let code = response.trim();

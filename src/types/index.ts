@@ -62,6 +62,11 @@ export interface GeneratorOutput {
   componentList: ComponentType[];
 }
 
+export interface ProjectFile {
+  path: string;
+  content: string;
+}
+
 // Output of the Explainer agent
 export interface ExplainerOutput {
   explanation: string;
@@ -77,6 +82,9 @@ export interface GenerationResult {
   version: number;
   timestamp: string;
   userPrompt: string;
+  projectId?: string;
+  files?: ProjectFile[];
+  downloadUrl?: string;
 }
 
 // Chat message
@@ -101,6 +109,7 @@ export interface VersionEntry {
 // API request types
 export interface GenerateRequest {
   prompt: string;
+  userId?: string;
 }
 
 export interface ModifyRequest {

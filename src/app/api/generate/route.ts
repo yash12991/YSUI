@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { orchestrateGeneration } from '@/lib/agents';
 import { GenerateRequest, ApiResponse, GenerationResult } from '@/types';
 import { getVersionHistory, addVersion } from '@/lib/store';
+import { createProject, createVersion } from '@/lib/db/queries';
+import { createNextProjectFiles } from '@/lib/generation/projectFiles';
+
+function makeProjectName(prompt: string) {
+    const compact = prompt.trim().replace(/\s+/g, ' ').slice(0, 48);
+    return compact || 'Untitled project';
+}
 
 export async function POST(request: NextRequest) {
     try {
@@ -16,6 +23,24 @@ export async function POST(request: NextRequest) {
 
         const currentVersion = getVersionHistory().length;
         const result: GenerationResult = await orchestrateGeneration(body.prompt, currentVersion);
+        result.files = createNextProjectFiles(result, makeProjectName(body.prompt));
+
+        if (body.userId) {
+            const project = await createProject(
+                body.userId,
+                `${makeProjectName(body.prompt)} ${Date.now()}`,
+                body.prompt,
+                { source: 'component-generator' }
+            );
+            await createVersion(project.id, result.version, result.generation.code, {
+                plan: result.plan,
+                explanation: result.explanation,
+                prompt: result.userPrompt,
+                files: result.files,
+            }, undefined, { files: result.files });
+            result.projectId = project.id;
+            result.downloadUrl = `/api/projects/${project.id}/download`;
+        }
 
         // Store version
         addVersion({

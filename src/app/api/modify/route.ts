@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { orchestrateModification } from '@/lib/agents';
 import { ApiResponse, GenerationResult } from '@/types';
 import { addVersion } from '@/lib/store';
+import { createVersion } from '@/lib/db/queries';
+import { createNextProjectFiles } from '@/lib/generation/projectFiles';
 
 export async function POST(request: NextRequest) {
     try {
@@ -28,6 +30,7 @@ export async function POST(request: NextRequest) {
             previousLayout: body.previousLayout,
             previousComponentList: body.previousComponentList,
         });
+        result.files = createNextProjectFiles(result, body.projectName || result.userPrompt);
 
         addVersion({
             version: result.version,
@@ -37,6 +40,17 @@ export async function POST(request: NextRequest) {
             explanation: result.explanation,
             timestamp: result.timestamp,
         });
+
+        if (body.projectId) {
+            await createVersion(body.projectId, result.version, result.generation.code, {
+                plan: result.plan,
+                explanation: result.explanation,
+                prompt: result.userPrompt,
+                files: result.files,
+            }, undefined, { files: result.files });
+            result.projectId = body.projectId;
+            result.downloadUrl = `/api/projects/${body.projectId}/download`;
+        }
 
         return NextResponse.json<ApiResponse<GenerationResult>>(
             { success: true, data: result },

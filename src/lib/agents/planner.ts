@@ -4,7 +4,7 @@
 // ============================================
 
 import { PlannerOutput } from '@/types';
-import { callGemini } from './geminiClient';
+import { callAI } from './aiProvider';
 import { getComponentDescriptions } from '../validation';
 
 // ---- PROMPT TEMPLATE ----
@@ -168,7 +168,7 @@ Create the best component plan to build exactly what they asked for.
 - Use realistic sample data
 - Output ONLY the JSON plan, no other text.`;
 
-  const response = await callGemini(userMessage, PLANNER_SYSTEM_PROMPT);
+  const response = await callAI(userMessage, PLANNER_SYSTEM_PROMPT);
 
   let cleanResponse = response.trim();
   if (cleanResponse.startsWith('`')) {

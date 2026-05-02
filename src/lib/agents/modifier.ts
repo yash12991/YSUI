@@ -6,7 +6,7 @@
 // ============================================
 
 import { ComponentType } from '@/types';
-import { callGemini } from './geminiClient';
+import { callAI } from './aiProvider';
 import { getComponentDescriptions } from '../validation';
 
 // ---- PROMPT TEMPLATE ----
@@ -87,7 +87,7 @@ IMPORTANT:
 
 Return ONLY the JSON with "code", "changes", "added", "removed", and "modified" fields.`;
 
-    const response = await callGemini(userMessage, MODIFIER_SYSTEM_PROMPT);
+    const response = await callAI(userMessage, MODIFIER_SYSTEM_PROMPT);
 
     let cleanResponse = response.trim();
     if (cleanResponse.startsWith('`')) {
