@@ -1,7 +1,6 @@
 'use server';
 
 import { spawn } from 'child_process';
-import { spawn } from 'child_process';
 
 export async function callOpencode(prompt: string): Promise<string> {
   return new Promise((resolve, reject) => {
