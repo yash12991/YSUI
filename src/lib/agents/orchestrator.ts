@@ -101,10 +101,9 @@ export async function orchestrateModification(
     changeDetails.modified.length > 0 ? `Modified: ${changeDetails.modified.join(', ')}` : '',
   ].filter(Boolean).join('. ');
 
-  // Update the plan reasoning with change details
   plan.reasoning = `Modification: ${changes}${changeSummary ? `. ${changeSummary}` : ''}`;
 
-  const generation = { code, componentList };
+  const generation = { code, componentList, files: [] };
   const explanation = await runExplainer(sanitizedPrompt, plan, generation);
 
   return {

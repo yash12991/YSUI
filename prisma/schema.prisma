@@ -121,6 +121,43 @@ model TeamMember {
   @@map("team_members")
 }
 
+// Community Shared Components
+model CommunityComponent {
+  id            String     @id @default(cuid())
+  userId        String
+  userName      String?
+  title         String
+  description   String?
+  code          String
+  prompt        String?
+  componentType String     @default("react-tsx")
+  layout        String     @default("single-column")
+  componentList String     @default("[]")
+  tags          String     @default("[]")
+  likes         Int        @default(0)
+  forks         Int        @default(0)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  comments      CommunityComment[]
+
+  @@map("community_components")
+}
+
+// Community Comments
+model CommunityComment {
+  id             String             @id @default(cuid())
+  communityComponentId String
+  userId         String
+  userName       String?
+  content        String
+  createdAt      DateTime           @default(now())
+
+  communityComponent CommunityComponent @relation(fields: [communityComponentId], references: [id], onDelete: Cascade)
+
+  @@map("community_comments")
+}
+
 // Audit Log
 model AuditLog {
   id                String     @id @default(cuid())

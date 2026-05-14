@@ -1,4 +1,4 @@
-/* Code Panel — Ultra-Modern with Code Wireframe */
+/* Code Panel — Ultra-Modern with VS Code-style File Tree */
 .codePanel {
   display: flex;
   flex-direction: column;
@@ -38,7 +38,16 @@
   flex-shrink: 0;
 }
 
-.fileName {
+.fileCount {
+  font-size: 0.62rem;
+  color: var(--color-text-muted);
+  background: var(--color-bg-glass-light);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-weight: 500;
+}
+
+.activeFileTab {
   font-size: 0.68rem;
   font-family: var(--font-mono);
   color: var(--color-text-muted);
@@ -46,6 +55,10 @@
   padding: 3px 10px;
   border-radius: var(--radius-full);
   border: 1px solid var(--color-border);
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .headerActions {
@@ -94,38 +107,91 @@
   overflow: hidden;
 }
 
+/* ---- VS Code-style File Tree ---- */
 .fileTree {
-  width: 240px;
+  width: 260px;
   flex-shrink: 0;
-  overflow: auto;
-  padding: 10px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 0;
   border-right: 1px solid var(--color-border);
-  background: rgba(255, 255, 255, 0.015);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .fileTreeItem {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 5px;
   width: 100%;
   overflow: hidden;
-  padding: 7px 9px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
+  padding: 5px 8px;
+  border: none;
+  border-left: 2px solid transparent;
   background: transparent;
   color: var(--color-text-muted);
-  font: 600 0.68rem var(--font-mono);
+  font: 500 0.75rem var(--font-sans);
   text-align: left;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   cursor: pointer;
+  transition: all 80ms ease;
+  white-space: nowrap;
 }
 
-.fileTreeItem:hover,
+.fileTreeItem:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--color-text-secondary);
+}
+
 .fileTreeItemActive {
-  border-color: rgba(16, 185, 129, 0.16);
-  background: rgba(16, 185, 129, 0.06);
+  color: var(--color-text-primary);
+  background: rgba(16, 185, 129, 0.08);
+  border-left-color: var(--color-accent-primary);
+}
+
+.fileTreeFolder {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  font-size: 0.73rem;
+}
+
+.fileTreeFolder:hover {
   color: var(--color-text-primary);
 }
 
+.fileTreeLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.fileTreeChevron {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  transition: transform 150ms ease;
+  opacity: 0.5;
+}
+
+.fileTreeChevronExpanded {
+  transform: rotate(90deg);
+}
+
+.fileTreeFolderIcon {
+  flex-shrink: 0;
+  color: #eab308;
+  opacity: 0.85;
+}
+
+.fileTreeFileIcon {
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+.fileTreeItemActive .fileTreeFileIcon {
+  opacity: 0.9;
+  color: var(--color-accent-primary);
+}
+
+/* ---- Code Display ---- */
 .codeWrapper {
   min-height: 100%;
   font-family: var(--font-mono);

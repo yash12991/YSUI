@@ -25,7 +25,16 @@ export async function POST(request: NextRequest) {
         const result: GenerationResult = await orchestrateGeneration(body.prompt, currentVersion);
         result.files = createNextProjectFiles(result, makeProjectName(body.prompt));
 
-        if (body.userId) {
+        if (body.projectId) {
+            await createVersion(body.projectId, result.version, result.generation.code, {
+                plan: result.plan,
+                explanation: result.explanation,
+                prompt: result.userPrompt,
+                files: result.files,
+            }, undefined, { files: result.files });
+            result.projectId = body.projectId;
+            result.downloadUrl = `/api/projects/${body.projectId}/download`;
+        } else if (body.userId) {
             const project = await createProject(
                 body.userId,
                 `${makeProjectName(body.prompt)} ${Date.now()}`,

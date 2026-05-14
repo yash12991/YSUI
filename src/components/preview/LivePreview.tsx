@@ -341,14 +341,14 @@ const Tabs = ({ items = [], activeTab: controlled, onChange }) => {
 
 /** Build TSX-mode iframe HTML (Babel transpiles the TSX code) */
 function buildIframeHTML(code: string): string {
-  let transformedCode = code
+  const transformedCode = code
     .replace(/'use client';\s*/g, '')
     .replace(/"use client";\s*/g, '')
-    .replace(/import React.*?from ['"]react['"];?\s*/g, '')
-    .replace(/import\s+\{[^}]+\}\s+from\s+['"]@\/components\/ui['"];?\s*/g, '')
-    .replace(/import\s+\{[^}]+\}\s+from\s+['"]@\/components\/ui\/[^'"]+['"];?\s*/g, '')
-    .replace(/import\s+.*?from\s+['"]@\/[^'"]+['"];?\s*/g, '')
-    .replace(/import\s+.*?from\s+['"](?!react)[^.@][^'"]*['"];?\s*/g, '');
+    // Strip ALL import statements — React & @/components/ui are provided by the iframe globals
+    .replace(/import\s+['"][^'"]+['"];?\s*/g, '')
+    .replace(/import\s+[\s\S]*?from\s+['"][^'"]+['"];?\s*/g, '')
+    // Strip export default — Babel in non-module script can't use it
+    .replace(/^export\s+default\s+/gm, '');
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -393,22 +393,94 @@ function buildDirectHTML(html: string): string {
 
 const LivePreview: React.FC<LivePreviewProps> = ({ code, outputMode = 'tsx', title }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // ── NEXTJS MODE: simple iframe pointing at /preview ──
-  // The file has already been written by page.tsx before this renders.
-  // We send a postMessage to trigger a remount inside the /preview page.
+  // Render iframe content — blob URL for tsx/html, /preview for nextjs
   useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe || !code) return;
+
+    // Store cleanup timeout so we can cancel it
+    let mounted = true;
+
     if (outputMode === 'nextjs') {
-      setLoading(false);
-      // Give Turbopack a moment to detect the file change, then signal reload
       const timer = setTimeout(() => {
-        iframeRef.current?.contentWindow?.postMessage({ type: 'RELOAD_PREVIEW' }, '*');
-      }, 800);
-      return () => clearTimeout(timer);
+        if (mounted && iframeRef.current?.contentWindow) {
+          iframeRef.current.contentWindow.location.reload();
+        }
+      }, 1500);
+      return () => {
+        mounted = false;
+        clearTimeout(timer);
+      };
     }
+
+    const html = outputMode === 'html' ? buildDirectHTML(code) : buildIframeHTML(code);
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+
+    iframe.onload = () => {
+      URL.revokeObjectURL(url);
+    };
+
+    iframe.src = url;
+    return () => {
+      mounted = false;
+      URL.revokeObjectURL(url);
+    };
   }, [code, outputMode]);
+
+  // Manage loading/error state via callbacks on the iframe and postMessage
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (!iframe || !code) return;
+    if (outputMode === 'nextjs') return;
+
+    // Defer setState to avoid cascading render warning — React 19
+    const timer = setTimeout(() => {
+      setLoading(true);
+      setError(null);
+    }, 0);
+
+    const handleMessage = (e: MessageEvent) => {
+      if (e.data?.type === 'PREVIEW_ERROR') {
+        setError(e.data.message);
+        setLoading(false);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+
+    iframe.onload = () => {
+      setLoading(false);
+    };
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('message', handleMessage);
+    };
+  }, [code, outputMode]);
+
+  const handleOpenTab = useCallback(() => {
+    if (outputMode === 'nextjs') {
+      window.open('/preview', '_blank');
+      return;
+    }
+    const html = outputMode === 'html' ? buildDirectHTML(code) : buildIframeHTML(code);
+    const blob = new Blob([html], { type: 'text/html' });
+    window.open(URL.createObjectURL(blob), '_blank');
+  }, [code, outputMode]);
+
+  const handleDownload = useCallback(() => {
+    const html = outputMode === 'html' ? buildDirectHTML(code) : buildIframeHTML(code);
+    const blob = new Blob([html], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${(title || 'app').toLowerCase().replace(/\s+/g, '-')}.html`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }, [code, outputMode, title]);
 
   if (outputMode === 'nextjs') {
     return (
@@ -432,64 +504,6 @@ const LivePreview: React.FC<LivePreviewProps> = ({ code, outputMode = 'tsx', tit
       </div>
     );
   }
-
-
-
-  const render = useCallback(() => {
-    const iframe = iframeRef.current;
-    if (!iframe || !code) return;
-
-    setError(null);
-    setLoading(true);
-
-    const html = outputMode === 'html' ? buildDirectHTML(code) : buildIframeHTML(code);
-    const blob = new Blob([html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-
-    const handleMessage = (e: MessageEvent) => {
-      if (e.data?.type === 'PREVIEW_ERROR') {
-        setError(e.data.message);
-        setLoading(false);
-      }
-    };
-    window.addEventListener('message', handleMessage);
-
-    iframe.onload = () => {
-      setLoading(false);
-      try {
-        if (iframe.contentWindow) {
-          iframe.contentWindow.onerror = (msg, _src, _line, _col, err) => {
-            const message = err?.message || String(msg);
-            window.parent.postMessage({ type: 'PREVIEW_ERROR', message }, '*');
-            return true;
-          };
-        }
-      } catch { /* blob URLs are same-origin */ }
-      URL.revokeObjectURL(url);
-    };
-
-    iframe.src = url;
-    return () => window.removeEventListener('message', handleMessage);
-  }, [code, outputMode]);
-
-  useEffect(() => { render(); }, [render]);
-
-  const handleOpenTab = useCallback(() => {
-    const html = outputMode === 'html' ? buildDirectHTML(code) : buildIframeHTML(code);
-    const blob = new Blob([html], { type: 'text/html' });
-    window.open(URL.createObjectURL(blob), '_blank');
-  }, [code, outputMode]);
-
-  const handleDownload = useCallback(() => {
-    const html = outputMode === 'html' ? buildDirectHTML(code) : buildIframeHTML(code);
-    const blob = new Blob([html], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${(title || 'app').toLowerCase().replace(/\s+/g, '-')}.html`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  }, [code, outputMode, title]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', width: '100%', height: '100%', minHeight: 300 }}>
@@ -524,8 +538,8 @@ const LivePreview: React.FC<LivePreviewProps> = ({ code, outputMode = 'tsx', tit
             <div style={{ fontSize: '1.5rem' }}>⚠️</div>
             <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f87171' }}>Preview Error</div>
             <div style={{ fontSize: '0.75rem', color: '#6b7280', textAlign: 'center', maxWidth: 400, lineHeight: 1.6 }}>{error}</div>
-            <button onClick={render} style={{ marginTop: 8, padding: '8px 18px', borderRadius: 8, border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', color: '#f87171', cursor: 'pointer', fontSize: '0.8rem', fontFamily: 'inherit' }}>
-              Retry
+            <button onClick={handleOpenTab} style={{ marginTop: 8, padding: '8px 18px', borderRadius: 8, border: '1px solid rgba(239,68,68,0.3)', background: 'rgba(239,68,68,0.08)', color: '#f87171', cursor: 'pointer', fontSize: '0.8rem', fontFamily: 'inherit' }}>
+              Open in tab
             </button>
           </div>
         )}

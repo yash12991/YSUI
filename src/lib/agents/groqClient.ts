@@ -34,8 +34,9 @@ export async function callGroq(prompt: string, systemInstruction?: string): Prom
     const result = await client.chat.completions.create({
         model,
         messages: messages,
-        temperature: 0.7,
-        max_tokens: 4096,
+        temperature: 0.6,
+        max_tokens: 8192,
+        top_p: 0.95,
     });
 
     const content = result.choices[0]?.message?.content;

@@ -56,15 +56,17 @@ export interface PlannerOutput {
   reasoning: string;
 }
 
+// A generated file in the project
+export interface ProjectFile {
+  path: string;
+  content: string;
+}
+
 // Output of the Generator agent
 export interface GeneratorOutput {
   code: string;
   componentList: ComponentType[];
-}
-
-export interface ProjectFile {
-  path: string;
-  content: string;
+  files?: ProjectFile[];
 }
 
 // Output of the Explainer agent
@@ -104,12 +106,14 @@ export interface VersionEntry {
   plan: PlannerOutput;
   explanation: ExplainerOutput;
   timestamp: string;
+  files?: ProjectFile[];
 }
 
 // API request types
 export interface GenerateRequest {
   prompt: string;
   userId?: string;
+  projectId?: string;
 }
 
 export interface ModifyRequest {

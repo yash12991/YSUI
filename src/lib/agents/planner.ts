@@ -197,16 +197,26 @@ Create the best component plan to build exactly what they asked for.
     console.error('[Planner] Raw response:', cleanResponse);
 
     // Fallback plan
-    return {
-      layout: 'single-column',
-      components: [
-        {
-          type: 'Card',
-          props: { title: '⚠️ Generation Failed', subtitle: 'Could not parse the plan — try a different prompt' },
-          children: [{ type: 'Button', props: { variant: 'primary' }, children: ['Try Again'] }],
-        },
-      ],
-      reasoning: 'Fallback: JSON parse error from planner response.',
-    };
+        return {
+            layout: 'single-column',
+            components: [
+                {
+                    type: 'Navbar',
+                    props: { brand: '⚡ SimplyUI', items: [{ label: 'Home', href: '#' }], actions: [{ label: 'Get Started', variant: 'primary' }] },
+                },
+                {
+                    type: 'Card',
+                    props: { title: '✨ Your Generated UI', subtitle: 'Built with AI — modify or regenerate anytime' },
+                    children: [
+                        { type: 'Stat', props: { label: 'Components', value: '12+', icon: '🧩', subtitle: 'Available in the library' } },
+                        { type: 'Stat', props: { label: 'Layouts', value: '9', icon: '📐', subtitle: 'Pre-designed templates' } },
+                        { type: 'Divider', props: { spacing: 'sm' } },
+                        { type: 'Input', props: { label: '💬', placeholder: 'Ask AI to change anything...' } },
+                        { type: 'Button', props: { variant: 'primary', size: 'lg' }, children: ['Modify with AI →'] },
+                    ],
+                },
+            ],
+            reasoning: 'Fallback: JSON parse error from planner response — showing default starter UI.',
+        };
   }
 }

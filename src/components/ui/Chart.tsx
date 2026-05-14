@@ -98,12 +98,18 @@ const LineChart: React.FC<{ data: ChartDataPoint[]; height: number }> = ({ data,
 
 const PieChart: React.FC<{ data: ChartDataPoint[] }> = ({ data }) => {
   const total = data.reduce((sum, d) => sum + d.value, 0) || 1;
-  let cumulative = 0;
+
+  const cumulativeAngles: number[] = [];
+  let runningTotal = 0;
+  for (const point of data) {
+    cumulativeAngles.push(runningTotal);
+    runningTotal += point.value;
+  }
 
   const slices = data.map((point, i) => {
+    const cumulative = cumulativeAngles[i];
     const startAngle = (cumulative / total) * 360;
     const sliceAngle = (point.value / total) * 360;
-    cumulative += point.value;
 
     const startRad = ((startAngle - 90) * Math.PI) / 180;
     const endRad = ((startAngle + sliceAngle - 90) * Math.PI) / 180;

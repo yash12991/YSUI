@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { deleteProject, getProjectById } from '@/lib/db/queries'
+import { deleteProject, getProjectById, createVersion } from '@/lib/db/queries'
 
 export async function GET(
   req: NextRequest,
@@ -18,6 +18,32 @@ export async function GET(
   } catch (error) {
     console.error('Error fetching project:', error)
     return NextResponse.json({ error: 'Failed to fetch project' }, { status: 500 })
+  }
+}
+
+export async function PATCH(
+  req: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await context.params
+    const userId = req.headers.get('x-user-id')
+    const project = await getProjectById(id)
+
+    if (!project || (userId && project.userId !== userId)) {
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 })
+    }
+
+    const body = await req.json()
+
+    if (body.frontendCode && body.versionNumber) {
+      await createVersion(id, body.versionNumber, body.frontendCode, body.backendSpec || {})
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Error updating project:', error)
+    return NextResponse.json({ error: 'Failed to update project' }, { status: 500 })
   }
 }
 
