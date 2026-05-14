@@ -101,7 +101,7 @@ NO → Consider alternatives:
 
 ### Step 4: Prepare Development Environment
 ```bash
-cd /home/jax/simpui/Simplyui
+cd /home/jax/ysui/Simplyui
 
 # Copy setup guide
 cat PHASE_1_SETUP.md

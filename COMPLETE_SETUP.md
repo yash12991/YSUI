@@ -48,7 +48,7 @@ All tables are ready and synced! 🎉
 
 ### 1. Start Development Server
 ```bash
-cd /home/jax/simpui/Simplyui
+cd /home/jax/ysui/Simplyui
 npm run dev
 ```
 Server runs on: **http://localhost:3000** or **http://localhost:3001**
@@ -203,12 +203,12 @@ simpui/Simplyui/
 DATABASE_URL="file:./prisma/dev.db"
 
 # AI Provider
-GROQ_API_KEY=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
+GROQ_API_KEY=your_groq_api_key_here
 AI_PROVIDER=groq
 
 # Supabase (Optional - for production)
-NEXT_PUBLIC_SUPABASE_URL=https://biocifrxhatjmwxjcjqi.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_uZUCe6_gnfDQSPRuis5QtA_EynuMMPo
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_key_here
 
 # Application
 NEXTAUTH_SECRET=your_random_secret_here

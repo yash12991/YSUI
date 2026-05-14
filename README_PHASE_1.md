@@ -400,7 +400,7 @@ Plus:
 
 All documentation is in your repository:
 ```
-/home/jax/simpui/Simplyui/
+/home/jax/ysui/Simplyui/
 
 ├─ START_HERE.md (👈 START HERE!)
 ├─ PHASE_1_SUMMARY.md

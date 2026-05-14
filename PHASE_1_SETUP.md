@@ -36,7 +36,7 @@
 ## STEP 2: Environment Setup
 
 ```bash
-cd /home/jax/simpui/Simplyui
+cd /home/jax/ysui/Simplyui
 
 # Update .env.local with database credentials
 cat > .env.local << 'EOF'

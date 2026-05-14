@@ -101,16 +101,16 @@ Status: All synced with Prisma ✅
 🔐 ENVIRONMENT VARIABLES ✅
 
 DATABASE_URL="file:./prisma/dev.db"
-GROQ_API_KEY=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
+GROQ_API_KEY=your_groq_api_key_here
 AI_PROVIDER=groq
 NODE_ENV=development
-NEXT_PUBLIC_SUPABASE_URL=https://biocifrxhatjmwxjcjqi.supabase.co
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_uZUCe6_gnfDQSPRuis5QtA_EynuMMPo
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=your_supabase_key_here
 
 
 📁 PROJECT STRUCTURE
 
-simpui/Simplyui/
+ysui/Simplyui/
 ├── src/
 │   ├── app/
 │   │   ├── api/
