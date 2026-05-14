@@ -30,7 +30,7 @@ A powerful Next.js application that generates beautiful, production-ready UI com
 1. Clone the repository:
 ```bash
 git clone <your-repo-url>
-cd AI-UI-Generator-Assignment-HarshKumar
+cd AI-UI-Gen
 ```
 
 2. Install dependencies:
@@ -207,7 +207,7 @@ MIT License - feel free to use this for personal or commercial projects!
 
 ## 🙏 Credits
 
-Built by [Harsh Kumar](https://github.com/HarshKumar133)
+Built by [Yash Sonawane](https://github.com/yash12991)
 
 Powered by:
 - Google Gemini AI
